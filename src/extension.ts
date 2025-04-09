@@ -73,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
     const selectedLine = selection.start.line;
     const referenceIndent = document.lineAt(selectedLine).text.match(/^\s*/)?.[0] || '';
     const asmInsertPos = new vscode.Position(selectedLine + 1, 0);
-    const assignmentLine = `${referenceIndent}${debugVarName} := ${selectedText}; // [gadgets-debug-assign:${debugId}]\n`;
+    const assignmentLine = `${referenceIndent}${debugVarName} := ${selectedText} // [gadgets-debug-assign:${debugId}]\n`;
     const insertAssignment = new vscode.TextEdit(
       new vscode.Range(asmInsertPos, asmInsertPos),
       assignmentLine
