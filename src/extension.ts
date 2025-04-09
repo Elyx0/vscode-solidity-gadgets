@@ -43,7 +43,6 @@ export function activate(context: vscode.ExtensionContext) {
     });
     if (!format) return;
 
-    // Insert debug var one line BEFORE the assembly block with correct fallback indent
     let debugIndent = '';
     if (asmStartPos.line > 0) {
       const lineAbove = document.lineAt(asmStartPos.line - 1).text;
@@ -63,7 +62,6 @@ export function activate(context: vscode.ExtensionContext) {
       `${debugIndent}uint ${debugVarName}; // [gadgets-debug-var:${debugId}]\n`
     );
 
-    // Insert assignment after selected line with same indent
     const selectedLine = selection.start.line;
     const referenceIndent = document.lineAt(selectedLine).text.match(/^\s*/)?.[0] || '';
     const asmInsertPos = new vscode.Position(selectedLine + 1, 0);
@@ -73,10 +71,12 @@ export function activate(context: vscode.ExtensionContext) {
       assignmentLine
     );
 
-    // Insert log after assembly, with same indent as closing brace
-    const closingLine = document.lineAt(asmEndPos.line);
-    const closingIndent = closingLine.text.match(/^\s*/)?.[0] || '';
-    const logPos = asmEndPos.translate(1, 0);
+    // Log position: just after the assembly's closing brace
+    const asmEndLineNum = asmEndPos.line;
+    const asmEndLine = document.lineAt(asmEndLineNum);
+    const closingIndent = asmEndLine.text.match(/^\s*/)?.[0] || '';
+    const logPos = new vscode.Position(asmEndLineNum + 1, 0);
+
     let logContent = "\n";
     if (format === "bytes") {
       logContent += `${closingIndent}console.log(\"${debugVarName}:\"); // [gadgets-debug-log:${debugId}]\n`;
@@ -173,7 +173,7 @@ function findAssemblyStart(text: string, offset: number): number {
   let lastValid = -1;
   while ((match = regex.exec(text)) !== null) {
     if (match.index < offset) {
-      lastValid = match.index + match[0].length;
+      lastValid = match.index;
     } else {
       break;
     }
@@ -183,12 +183,17 @@ function findAssemblyStart(text: string, offset: number): number {
 
 function findMatchingBrace(text: string, startIndex: number): number {
   let depth = 0;
-  for (let i = startIndex; i < text.length; i++) {
-    if (text[i] === '{') {
-      depth++;
-    } else if (text[i] === '}') {
-      if (depth === 0) return i;
+  let i = startIndex;
+
+  // Skip to first `{`
+  while (i < text.length && text[i] !== '{') i++;
+  if (text[i] !== '{') return -1;
+
+  for (; i < text.length; i++) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}') {
       depth--;
+      if (depth === 0) return i;
     }
   }
   return -1;
