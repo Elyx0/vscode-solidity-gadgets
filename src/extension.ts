@@ -43,37 +43,20 @@ export function activate(context: vscode.ExtensionContext) {
     });
     if (!format) return;
 
-    let debugIndent = '';
-    if (asmStartPos.line > 0) {
-      const lineAbove = document.lineAt(asmStartPos.line - 1).text;
-      debugIndent = lineAbove.trim() === ''
-        ? document.lineAt(asmStartPos.line).text.match(/^\s*/)?.[0] || ''
-        : lineAbove.match(/^\s*/)?.[0] || '';
-    } else {
-      debugIndent = document.lineAt(asmStartPos.line).text.match(/^\s*/)?.[0] || '';
-    }
+    let debugIndent = document.lineAt(asmStartPos.line).text.match(/^\s*/)?.[0] || '';
 
-    const debugVarLineNum = asmStartPos.line > 0 ? asmStartPos.line - 1 : 0;
-    const debugVarLinePos = new vscode.Position(debugVarLineNum, 0);
-    const debugVarLine = document.lineAt(debugVarLineNum);
-
-    let insertDebugVar: vscode.TextEdit;
-    if (debugVarLine.text.trim() !== '') {
-      insertDebugVar = new vscode.TextEdit(
-        new vscode.Range(debugVarLinePos, debugVarLinePos),
-        `${debugIndent}uint ${debugVarName}; // [gadgets-debug-var:${debugId}]\n`
-      );
-    } else {
-      insertDebugVar = new vscode.TextEdit(
-        debugVarLine.range,
-        `${debugIndent}uint ${debugVarName}; // [gadgets-debug-var:${debugId}]\n`
-      );
-    }
+    // Final: always insert inside the function, just above assembly block
+    const insertInsideFunction = asmStartPos.with({ character: 0 });
+    const debugDecl = `${debugIndent}uint ${debugVarName}; // [gadgets-debug-var:${debugId}]\n`;
+    const insertDebugVar = new vscode.TextEdit(
+      new vscode.Range(insertInsideFunction, insertInsideFunction),
+      debugDecl
+    );
 
     const selectedLine = selection.start.line;
     const referenceIndent = document.lineAt(selectedLine).text.match(/^\s*/)?.[0] || '';
     const asmInsertPos = new vscode.Position(selectedLine + 1, 0);
-    const assignmentLine = `${referenceIndent}${debugVarName} := ${selectedText} // [gadgets-debug-assign:${debugId}]\n`;
+    const assignmentLine = `${referenceIndent}${debugVarName} := ${selectedText}; // [gadgets-debug-assign:${debugId}]\n`;
     const insertAssignment = new vscode.TextEdit(
       new vscode.Range(asmInsertPos, asmInsertPos),
       assignmentLine
@@ -192,7 +175,6 @@ function findMatchingBrace(text: string, startIndex: number): number {
   let depth = 0;
   let i = startIndex;
 
-  // Skip to first `{`
   while (i < text.length && text[i] !== '{') i++;
   if (text[i] !== '{') return -1;
 
