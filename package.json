@@ -3,6 +3,7 @@
   "displayName": "Solidity Assembly Debugger",
   "description": "Adds debug logging for Solidity variables inside assembly blocks",
   "version": "0.0.1",
+  "repository": "https://github.com/Elyx0/vscode-solidity-gadgets",
   "publisher": "elyx0",
   "engines": {
     "vscode": "^1.85.0"
@@ -12,7 +13,8 @@
   "scripts": {
     "compile": "tsc",
     "prepublish": "npm run compile",
-    "package": "vsce package -y",
+    "package": "vsce package",
+    "activate": "npm run compile && vsce package && npm run vscode-install",
     "vscode-install": "code --install-extension vscode-solidity-gadgets-0.0.1.vsix",
     "vscode-uninstall": "code --uninstall-extension vscode-solidity-gadgets-0.0.1.vsix"
   },
