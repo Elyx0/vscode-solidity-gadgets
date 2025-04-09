@@ -53,14 +53,22 @@ export function activate(context: vscode.ExtensionContext) {
       debugIndent = document.lineAt(asmStartPos.line).text.match(/^\s*/)?.[0] || '';
     }
 
-    const debugVarInsertPos = asmStartPos.line > 0
-      ? asmStartPos.translate(-1, 0)
-      : new vscode.Position(0, 0);
+    const debugVarLineNum = asmStartPos.line > 0 ? asmStartPos.line - 1 : 0;
+    const debugVarLinePos = new vscode.Position(debugVarLineNum, 0);
+    const debugVarLine = document.lineAt(debugVarLineNum);
 
-    const insertDebugVar = new vscode.TextEdit(
-      new vscode.Range(debugVarInsertPos, debugVarInsertPos),
-      `${debugIndent}uint ${debugVarName}; // [gadgets-debug-var:${debugId}]\n`
-    );
+    let insertDebugVar: vscode.TextEdit;
+    if (debugVarLine.text.trim() !== '') {
+      insertDebugVar = new vscode.TextEdit(
+        new vscode.Range(debugVarLinePos, debugVarLinePos),
+        `${debugIndent}uint ${debugVarName}; // [gadgets-debug-var:${debugId}]\n`
+      );
+    } else {
+      insertDebugVar = new vscode.TextEdit(
+        debugVarLine.range,
+        `${debugIndent}uint ${debugVarName}; // [gadgets-debug-var:${debugId}]\n`
+      );
+    }
 
     const selectedLine = selection.start.line;
     const referenceIndent = document.lineAt(selectedLine).text.match(/^\s*/)?.[0] || '';
@@ -71,7 +79,6 @@ export function activate(context: vscode.ExtensionContext) {
       assignmentLine
     );
 
-    // Log position: just after the assembly's closing brace
     const asmEndLineNum = asmEndPos.line;
     const asmEndLine = document.lineAt(asmEndLineNum);
     const closingIndent = asmEndLine.text.match(/^\s*/)?.[0] || '';
