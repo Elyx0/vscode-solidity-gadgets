@@ -12,7 +12,8 @@
   "scripts": {
     "compile": "tsc",
     "prepublish": "npm run compile",
-    "package": "vsce package"
+    "package": "vsce package -y",
+    "vscode-install": "code --install-extension vscode-solidity-gadgets-0.0.1.vsix"
   },
   "devDependencies": {
     "@types/vscode": "^1.85.0",
