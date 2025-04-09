@@ -1,0 +1,62 @@
+{
+  "name": "vscode-solidity-gadgets",
+  "displayName": "Solidity Assembly Debugger",
+  "description": "Adds debug logging for Solidity variables inside assembly blocks",
+  "version": "0.0.1",
+  "publisher": "elyx0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc",
+    "prepublish": "npm run compile",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3",
+    "vsce": "^2.17.0"
+  },
+  "activationEvents": [
+    "onCommand:extension.addDebugTrace",
+    "onCommand:extension.toggleGadgetBlockAtCursor",
+    "onCommand:extension.removeGadgetBlockAtCursor"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.addDebugTrace",
+        "title": "Gadget: Assembly Debug uint"
+      },
+      {
+        "command": "extension.toggleGadgetBlockAtCursor",
+        "title": "Gadget: Toggle Debug Block"
+      },
+      {
+        "command": "extension.removeGadgetBlockAtCursor",
+        "title": "Gadget: Remove Debug Block"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "extension.addDebugTrace",
+          "when": "editorTextFocus && editorLangId == solidity",
+          "group": "navigation"
+        },
+        {
+          "command": "extension.toggleGadgetBlockAtCursor",
+          "when": "editorTextFocus && gadgetsDebugLine",
+          "group": "navigation"
+        },
+        {
+          "command": "extension.removeGadgetBlockAtCursor",
+          "when": "editorTextFocus && gadgetsDebugLine",
+          "group": "navigation"
+        }
+      ]
+    }
+  }
+}
